@@ -1,72 +1,99 @@
 <?xml version="1.0" ?>
 <sdf version="1.9">
   <model name="quadrotor_px4">
-    <!-- Model pose: will be set by the launch file or ROS spawn -->
-    <pose>0 0 0.1 0 0 0</pose>
-
-    <!-- Enable IMU for Gazebo-based state estimation -->
+    <!-- Initial pose (can be overridden by launch / world spawn) -->
+    <pose>0 0 0.2 0 0 0</pose>
     <static>false</static>
 
-    <!-- Main body (fuselage) -->
+    <!-- ========================================== -->
+    <!-- Airframe & Fuselage Physical Properties    -->
+    <!-- Standard 3DR Iris / Research Quadrotor     -->
+    <!-- Total Mass: ~1.50 kg                       -->
+    <!-- ========================================== -->
     <link name="base_link">
       <inertial>
-        <!-- Total mass: 1.2 kg (typical for small quadrotor) -->
-        <mass>1.2</mass>
-        <!-- Inertia tensor (simplified, assuming symmetric body) -->
+        <mass>1.50</mass>
         <inertia>
-          <ixx>0.01</ixx>
-          <iyy>0.01</iyy>
-          <izz>0.02</izz>
+          <ixx>0.029125</ixx>
+          <iyy>0.029125</iyy>
+          <izz>0.055225</izz>
           <ixy>0.0</ixy>
           <ixz>0.0</ixz>
           <iyz>0.0</iyz>
         </inertia>
       </inertial>
 
-      <!-- Main body visual (central fuselage) -->
-      <visual name="body">
+      <visual name="fuselage_visual">
         <geometry>
           <box>
-            <size>0.2 0.2 0.1</size>
+            <size>0.28 0.28 0.11</size>
           </box>
         </geometry>
         <material>
-          <ambient>0.1 0.1 0.1 1</ambient>
-          <diffuse>0.3 0.3 0.3 1</diffuse>
-          <specular>0.5 0.5 0.5 1</specular>
+          <ambient>0.15 0.15 0.18 1.0</ambient>
+          <diffuse>0.25 0.25 0.30 1.0</diffuse>
+          <specular>0.6 0.6 0.6 1.0</specular>
         </material>
       </visual>
 
-      <!-- Main body collision -->
-      <collision name="body">
+      <collision name="fuselage_collision">
         <geometry>
           <box>
-            <size>0.2 0.2 0.1</size>
+            <size>0.28 0.28 0.11</size>
           </box>
         </geometry>
+        <surface>
+          <friction>
+            <ode>
+              <mu>1.0</mu>
+              <mu2>1.0</mu2>
+            </ode>
+          </friction>
+          <contact>
+            <ode>
+              <min_depth>0.005</min_depth>
+              <kp>1e6</kp>
+              <kd>1.0</kd>
+            </ode>
+          </contact>
+        </surface>
       </collision>
 
-      <!-- IMU sensor (required for PX4 state estimation) -->
-      <sensor name="imu" type="imu">
+      <!-- Autopilot Core IMU (PX4 EKF2 Primary) -->
+      <sensor name="autopilot_imu" type="imu">
         <pose>0 0 0 0 0 0</pose>
+        <always_on>true</always_on>
+        <update_rate>250</update_rate>
         <imu>
           <angular_velocity>
             <x>
               <noise type="gaussian">
                 <mean>0.0</mean>
-                <stddev>0.0099</stddev>
+                <stddev>0.0003</stddev>
+                <bias_mean>0.0001</bias_mean>
+                <bias_stddev>0.00002</bias_stddev>
+                <dynamic_bias_stddev>0.000005</dynamic_bias_stddev>
+                <dynamic_bias_correlation_time>1000.0</dynamic_bias_correlation_time>
               </noise>
             </x>
             <y>
               <noise type="gaussian">
                 <mean>0.0</mean>
-                <stddev>0.0099</stddev>
+                <stddev>0.0003</stddev>
+                <bias_mean>0.0001</bias_mean>
+                <bias_stddev>0.00002</bias_stddev>
+                <dynamic_bias_stddev>0.000005</dynamic_bias_stddev>
+                <dynamic_bias_correlation_time>1000.0</dynamic_bias_correlation_time>
               </noise>
             </y>
             <z>
               <noise type="gaussian">
                 <mean>0.0</mean>
-                <stddev>0.0099</stddev>
+                <stddev>0.0003</stddev>
+                <bias_mean>0.0001</bias_mean>
+                <bias_stddev>0.00002</bias_stddev>
+                <dynamic_bias_stddev>0.000005</dynamic_bias_stddev>
+                <dynamic_bias_correlation_time>1000.0</dynamic_bias_correlation_time>
               </noise>
             </z>
           </angular_velocity>
@@ -74,345 +101,483 @@
             <x>
               <noise type="gaussian">
                 <mean>0.0</mean>
-                <stddev>0.0174</stddev>
+                <stddev>0.0025</stddev>
+                <bias_mean>0.002</bias_mean>
+                <bias_stddev>0.0005</bias_stddev>
+                <dynamic_bias_stddev>0.0001</dynamic_bias_stddev>
+                <dynamic_bias_correlation_time>1000.0</dynamic_bias_correlation_time>
               </noise>
             </x>
             <y>
               <noise type="gaussian">
                 <mean>0.0</mean>
-                <stddev>0.0174</stddev>
+                <stddev>0.0025</stddev>
+                <bias_mean>0.002</bias_mean>
+                <bias_stddev>0.0005</bias_stddev>
+                <dynamic_bias_stddev>0.0001</dynamic_bias_stddev>
+                <dynamic_bias_correlation_time>1000.0</dynamic_bias_correlation_time>
               </noise>
             </y>
             <z>
               <noise type="gaussian">
                 <mean>0.0</mean>
-                <stddev>0.0174</stddev>
+                <stddev>0.0025</stddev>
+                <bias_mean>0.002</bias_mean>
+                <bias_stddev>0.0005</bias_stddev>
+                <dynamic_bias_stddev>0.0001</dynamic_bias_stddev>
+                <dynamic_bias_correlation_time>1000.0</dynamic_bias_correlation_time>
               </noise>
             </z>
           </linear_acceleration>
         </imu>
+      </sensor>
+    </link>
+
+    <!-- ============================================================== -->
+    <!-- Intel RealSense D435i Sensor Suite                             -->
+    <!-- Forward mount: Stereo IR (Left/Right) @ 30Hz + IMU @ 200Hz     -->
+    <!-- Allan Variance Noise Profile: Bosch BMI085 6-DoF               -->
+    <!-- ============================================================== -->
+    <link name="d435i_link">
+      <pose relative_to="base_link">0.14 0 0 0 0 0</pose>
+      <inertial>
+        <mass>0.072</mass>
+        <inertia>
+          <ixx>0.000015</ixx>
+          <iyy>0.000045</iyy>
+          <izz>0.000045</izz>
+          <ixy>0.0</ixy>
+          <ixz>0.0</ixz>
+          <iyz>0.0</iyz>
+        </inertia>
+      </inertial>
+
+      <!-- D435i Physical Casing Visual -->
+      <visual name="d435i_visual">
+        <geometry>
+          <box>
+            <size>0.025 0.090 0.025</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>0.6 0.6 0.65 1.0</ambient>
+          <diffuse>0.7 0.7 0.75 1.0</diffuse>
+          <specular>0.8 0.8 0.8 1.0</specular>
+        </material>
+      </visual>
+
+      <collision name="d435i_collision">
+        <geometry>
+          <box>
+            <size>0.025 0.090 0.025</size>
+          </box>
+        </geometry>
+      </collision>
+
+      <!-- 1. D435i Onboard IMU (BMI085) with Allan Variance Noise Profile @ 200Hz -->
+      <sensor name="d435i_imu" type="imu">
+        <pose>0 0 0 0 0 0</pose>
         <always_on>true</always_on>
-        <update_rate>250</update_rate>
+        <update_rate>200</update_rate>
+        <topic>d435i/imu</topic>
+        <imu>
+          <angular_velocity>
+            <!-- BMI085 Gyroscope: Noise Density = 0.00028 rad/s/sqrt(Hz), Bias Stability = 0.00003 rad/s^2/sqrt(Hz) -->
+            <x>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.00028</stddev>
+                <bias_mean>0.00005</bias_mean>
+                <bias_stddev>0.00001</bias_stddev>
+                <dynamic_bias_stddev>0.00003</dynamic_bias_stddev>
+                <dynamic_bias_correlation_time>1000.0</dynamic_bias_correlation_time>
+              </noise>
+            </x>
+            <y>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.00028</stddev>
+                <bias_mean>0.00005</bias_mean>
+                <bias_stddev>0.00001</bias_stddev>
+                <dynamic_bias_stddev>0.00003</dynamic_bias_stddev>
+                <dynamic_bias_correlation_time>1000.0</dynamic_bias_correlation_time>
+              </noise>
+            </y>
+            <z>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.00028</stddev>
+                <bias_mean>0.00005</bias_mean>
+                <bias_stddev>0.00001</bias_stddev>
+                <dynamic_bias_stddev>0.00003</dynamic_bias_stddev>
+                <dynamic_bias_correlation_time>1000.0</dynamic_bias_correlation_time>
+              </noise>
+            </z>
+          </angular_velocity>
+          <linear_acceleration>
+            <!-- BMI085 Accelerometer: Noise Density = 0.0023 m/s^2/sqrt(Hz), Bias Stability = 0.00018 m/s^3/sqrt(Hz) -->
+            <x>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.0023</stddev>
+                <bias_mean>0.001</bias_mean>
+                <bias_stddev>0.0003</bias_stddev>
+                <dynamic_bias_stddev>0.00018</dynamic_bias_stddev>
+                <dynamic_bias_correlation_time>1000.0</dynamic_bias_correlation_time>
+              </noise>
+            </x>
+            <y>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.0023</stddev>
+                <bias_mean>0.001</bias_mean>
+                <bias_stddev>0.0003</bias_stddev>
+                <dynamic_bias_stddev>0.00018</dynamic_bias_stddev>
+                <dynamic_bias_correlation_time>1000.0</dynamic_bias_correlation_time>
+              </noise>
+            </y>
+            <z>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.0023</stddev>
+                <bias_mean>0.001</bias_mean>
+                <bias_stddev>0.0003</bias_stddev>
+                <dynamic_bias_stddev>0.00018</dynamic_bias_stddev>
+                <dynamic_bias_correlation_time>1000.0</dynamic_bias_correlation_time>
+              </noise>
+            </z>
+          </linear_acceleration>
+        </imu>
       </sensor>
 
-        <!-- Camera sensor (RGB image for VSLAM/exploration) -->
-        <sensor name="camera" type="camera">
-          <pose relative_to="base_link">0.05 0 -0.05 0 0.3927 0</pose>
-          <camera>
-            <horizontal_fov>1.0472</horizontal_fov>
-            <vertical_fov>0.7854</vertical_fov>
-            <image>
-              <width>640</width>
-              <height>480</height>
-              <format>RGB_INT8</format>
-            </image>
-            <clip>
-              <near>0.01</near>
-              <far>300</far>
-            </clip>
-            <noise>
-              <type>gaussian</type>
-              <mean>0.0</mean>
-              <stddev>0.01</stddev>
-            </noise>
-          </camera>
-          <always_on>true</always_on>
-          <update_rate>30</update_rate>
-        </sensor>
+      <!-- 2. Left Infrared Camera (infra1) @ 30Hz, 848x480, FOV 87 deg x 58 deg -->
+      <!-- Baseline: -0.025m on Y-axis from center -->
+      <sensor name="d435i_infra1" type="camera">
+        <pose>0 0.025 0 0 0 0</pose>
+        <always_on>true</always_on>
+        <update_rate>30</update_rate>
+        <topic>d435i/infra1/image_raw</topic>
+        <camera>
+          <horizontal_fov>1.5184</horizontal_fov>
+          <image>
+            <width>848</width>
+            <height>480</height>
+            <format>L_INT8</format>
+          </image>
+          <clip>
+            <near>0.10</near>
+            <far>25.0</far>
+          </clip>
+          <noise>
+            <type>gaussian</type>
+            <mean>0.0</mean>
+            <stddev>0.005</stddev>
+          </noise>
+        </camera>
+      </sensor>
 
-        <!-- Depth Camera sensor (for mapping and obstacle avoidance) -->
-        <sensor name="depth_camera" type="depth_camera">
-          <pose relative_to="base_link">0.05 0 -0.05 0 0.3927 0</pose>
-          <camera>
-            <horizontal_fov>1.0472</horizontal_fov>
-            <vertical_fov>0.7854</vertical_fov>
-            <image>
-              <width>640</width>
-              <height>480</height>
-              <format>R_FLOAT32</format>
-            </image>
-            <clip>
-              <near>0.01</near>
-              <far>20</far>
-            </clip>
-          </camera>
-          <always_on>true</always_on>
-          <update_rate>30</update_rate>
-        </sensor>
+      <!-- 3. Right Infrared Camera (infra2) @ 30Hz, 848x480, FOV 87 deg x 58 deg -->
+      <!-- Baseline: +0.025m on Y-axis from center (Total Baseline = 50mm) -->
+      <sensor name="d435i_infra2" type="camera">
+        <pose>0 -0.025 0 0 0 0</pose>
+        <always_on>true</always_on>
+        <update_rate>30</update_rate>
+        <topic>d435i/infra2/image_raw</topic>
+        <camera>
+          <horizontal_fov>1.5184</horizontal_fov>
+          <image>
+            <width>848</width>
+            <height>480</height>
+            <format>L_INT8</format>
+          </image>
+          <clip>
+            <near>0.10</near>
+            <far>25.0</far>
+          </clip>
+          <noise>
+            <type>gaussian</type>
+            <mean>0.0</mean>
+            <stddev>0.005</stddev>
+          </noise>
+        </camera>
+      </sensor>
+
+      <!-- 4. Aligned Hardware Depth Stream @ 30Hz -->
+      <sensor name="d435i_depth" type="depth_camera">
+        <pose>0 0.025 0 0 0 0</pose>
+        <always_on>true</always_on>
+        <update_rate>30</update_rate>
+        <topic>d435i/depth/image_rect_raw</topic>
+        <camera>
+          <horizontal_fov>1.5184</horizontal_fov>
+          <image>
+            <width>848</width>
+            <height>480</height>
+            <format>R_FLOAT32</format>
+          </image>
+          <clip>
+            <near>0.15</near>
+            <far>15.0</far>
+          </clip>
+          <noise>
+            <type>gaussian</type>
+            <mean>0.0</mean>
+            <stddev>0.012</stddev>
+          </noise>
+        </camera>
+      </sensor>
     </link>
 
-    <!-- Front-Left Motor (Motor 0) -->
+    <!-- Rigid mount joint connecting D435i to base_link -->
+    <joint name="d435i_joint" type="fixed">
+      <parent>base_link</parent>
+      <child>d435i_link</child>
+    </joint>
+
+    <!-- ========================================== -->
+    <!-- 4 Rotors Physical Inertial & Geometries    -->
+    <!-- ========================================== -->
+    <!-- Front-Left Motor (Rotor 0) -->
     <link name="rotor_0">
-      <pose relative_to="base_link">0.1 0.1 0 0 0 0</pose>
+      <pose relative_to="base_link">0.13 0.13 0.03 0 0 0</pose>
       <inertial>
-        <mass>0.005</mass>
+        <mass>0.012</mass>
         <inertia>
-          <ixx>0.00001</ixx>
-          <iyy>0.00001</iyy>
-          <izz>0.00001</izz>
+          <ixx>0.00002</ixx>
+          <iyy>0.00002</iyy>
+          <izz>0.00004</izz>
         </inertia>
       </inertial>
-      <visual name="rotor_visual">
+      <visual name="rotor_0_visual">
         <geometry>
           <cylinder>
-            <radius>0.05</radius>
-            <length>0.01</length>
+            <radius>0.11</radius>
+            <length>0.008</length>
           </cylinder>
         </geometry>
         <material>
-          <ambient>0.2 0.2 0.2 1</ambient>
-          <diffuse>0.4 0.4 0.4 1</diffuse>
+          <ambient>0.1 0.1 0.1 0.7</ambient>
+          <diffuse>0.2 0.2 0.2 0.7</diffuse>
         </material>
       </visual>
-      <collision name="rotor_collision">
+      <collision name="rotor_0_collision">
         <geometry>
           <cylinder>
-            <radius>0.05</radius>
-            <length>0.01</length>
+            <radius>0.11</radius>
+            <length>0.008</length>
           </cylinder>
         </geometry>
       </collision>
     </link>
 
-    <!-- Front-Right Motor (Motor 1) -->
+    <!-- Front-Right Motor (Rotor 1) -->
     <link name="rotor_1">
-      <pose relative_to="base_link">0.1 -0.1 0 0 0 0</pose>
+      <pose relative_to="base_link">0.13 -0.13 0.03 0 0 0</pose>
       <inertial>
-        <mass>0.005</mass>
+        <mass>0.012</mass>
         <inertia>
-          <ixx>0.00001</ixx>
-          <iyy>0.00001</iyy>
-          <izz>0.00001</izz>
+          <ixx>0.00002</ixx>
+          <iyy>0.00002</iyy>
+          <izz>0.00004</izz>
         </inertia>
       </inertial>
-      <visual name="rotor_visual">
+      <visual name="rotor_1_visual">
         <geometry>
           <cylinder>
-            <radius>0.05</radius>
-            <length>0.01</length>
+            <radius>0.11</radius>
+            <length>0.008</length>
           </cylinder>
         </geometry>
         <material>
-          <ambient>0.2 0.2 0.2 1</ambient>
-          <diffuse>0.4 0.4 0.4 1</diffuse>
+          <ambient>0.1 0.1 0.1 0.7</ambient>
+          <diffuse>0.2 0.2 0.2 0.7</diffuse>
         </material>
       </visual>
-      <collision name="rotor_collision">
+      <collision name="rotor_1_collision">
         <geometry>
           <cylinder>
-            <radius>0.05</radius>
-            <length>0.01</length>
+            <radius>0.11</radius>
+            <length>0.008</length>
           </cylinder>
         </geometry>
       </collision>
     </link>
 
-    <!-- Back-Left Motor (Motor 2) -->
+    <!-- Back-Left Motor (Rotor 2) -->
     <link name="rotor_2">
-      <pose relative_to="base_link">-0.1 0.1 0 0 0 0</pose>
+      <pose relative_to="base_link">-0.13 0.13 0.03 0 0 0</pose>
       <inertial>
-        <mass>0.005</mass>
+        <mass>0.012</mass>
         <inertia>
-          <ixx>0.00001</ixx>
-          <iyy>0.00001</iyy>
-          <izz>0.00001</izz>
+          <ixx>0.00002</ixx>
+          <iyy>0.00002</iyy>
+          <izz>0.00004</izz>
         </inertia>
       </inertial>
-      <visual name="rotor_visual">
+      <visual name="rotor_2_visual">
         <geometry>
           <cylinder>
-            <radius>0.05</radius>
-            <length>0.01</length>
+            <radius>0.11</radius>
+            <length>0.008</length>
           </cylinder>
         </geometry>
         <material>
-          <ambient>0.2 0.2 0.2 1</ambient>
-          <diffuse>0.4 0.4 0.4 1</diffuse>
+          <ambient>0.1 0.1 0.1 0.7</ambient>
+          <diffuse>0.2 0.2 0.2 0.7</diffuse>
         </material>
       </visual>
-      <collision name="rotor_collision">
+      <collision name="rotor_2_collision">
         <geometry>
           <cylinder>
-            <radius>0.05</radius>
-            <length>0.01</length>
+            <radius>0.11</radius>
+            <length>0.008</length>
           </cylinder>
         </geometry>
       </collision>
     </link>
 
-    <!-- Back-Right Motor (Motor 3) -->
+    <!-- Back-Right Motor (Rotor 3) -->
     <link name="rotor_3">
-      <pose relative_to="base_link">-0.1 -0.1 0 0 0 0</pose>
+      <pose relative_to="base_link">-0.13 -0.13 0.03 0 0 0</pose>
       <inertial>
-        <mass>0.005</mass>
+        <mass>0.012</mass>
         <inertia>
-          <ixx>0.00001</ixx>
-          <iyy>0.00001</iyy>
-          <izz>0.00001</izz>
+          <ixx>0.00002</ixx>
+          <iyy>0.00002</iyy>
+          <izz>0.00004</izz>
         </inertia>
       </inertial>
-      <visual name="rotor_visual">
+      <visual name="rotor_3_visual">
         <geometry>
           <cylinder>
-            <radius>0.05</radius>
-            <length>0.01</length>
+            <radius>0.11</radius>
+            <length>0.008</length>
           </cylinder>
         </geometry>
         <material>
-          <ambient>0.2 0.2 0.2 1</ambient>
-          <diffuse>0.4 0.4 0.4 1</diffuse>
+          <ambient>0.1 0.1 0.1 0.7</ambient>
+          <diffuse>0.2 0.2 0.2 0.7</diffuse>
         </material>
       </visual>
-      <collision name="rotor_collision">
+      <collision name="rotor_3_collision">
         <geometry>
           <cylinder>
-            <radius>0.05</radius>
-            <length>0.01</length>
+            <radius>0.11</radius>
+            <length>0.008</length>
           </cylinder>
         </geometry>
       </collision>
     </link>
 
-    <!-- Joints connecting rotors to main body -->
-    <!-- Front-Left (Motor 0) -->
+    <!-- ========================================== -->
+    <!-- Revolute Joints for Rotors                 -->
+    <!-- ========================================== -->
     <joint name="rotor_0_joint" type="revolute">
-      <pose relative_to="rotor_0">0 0 0 0 0 0</pose>
       <parent>base_link</parent>
       <child>rotor_0</child>
       <axis>
         <xyz>0 0 1</xyz>
         <limit>
-          <lower>0</lower>
-          <upper>0</upper>
-          <effort>1000</effort>
-          <velocity>300</velocity>
+          <lower>-1e16</lower>
+          <upper>1e16</upper>
         </limit>
       </axis>
     </joint>
 
-    <!-- Front-Right (Motor 1) -->
     <joint name="rotor_1_joint" type="revolute">
-      <pose relative_to="rotor_1">0 0 0 0 0 0</pose>
       <parent>base_link</parent>
       <child>rotor_1</child>
       <axis>
         <xyz>0 0 1</xyz>
         <limit>
-          <lower>0</lower>
-          <upper>0</upper>
-          <effort>1000</effort>
-          <velocity>300</velocity>
+          <lower>-1e16</lower>
+          <upper>1e16</upper>
         </limit>
       </axis>
     </joint>
 
-    <!-- Back-Left (Motor 2) -->
     <joint name="rotor_2_joint" type="revolute">
-      <pose relative_to="rotor_2">0 0 0 0 0 0</pose>
       <parent>base_link</parent>
       <child>rotor_2</child>
       <axis>
         <xyz>0 0 1</xyz>
         <limit>
-          <lower>0</lower>
-          <upper>0</upper>
-          <effort>1000</effort>
-          <velocity>300</velocity>
+          <lower>-1e16</lower>
+          <upper>1e16</upper>
         </limit>
       </axis>
     </joint>
 
-    <!-- Back-Right (Motor 3) -->
     <joint name="rotor_3_joint" type="revolute">
-      <pose relative_to="rotor_3">0 0 0 0 0 0</pose>
       <parent>base_link</parent>
       <child>rotor_3</child>
       <axis>
         <xyz>0 0 1</xyz>
         <limit>
-          <lower>0</lower>
-          <upper>0</upper>
-          <effort>1000</effort>
-          <velocity>300</velocity>
+          <lower>-1e16</lower>
+          <upper>1e16</upper>
         </limit>
       </axis>
     </joint>
 
-    <!-- Thruster plugins for PX4 SITL -->
-    <!-- Motor 0 (Front-Left) -->
-    <plugin
-      filename="gz-sim-multirotor-motor-model-system"
-      name="motor_0">
+    <!-- ============================================================== -->
+    <!-- Gazebo Harmonic Multirotor Physics & Motor Model Systems       -->
+    <!-- Aerodynamic thrust curve, rotational drag, PX4 command inputs  -->
+    <!-- ============================================================== -->
+    <!-- Motor 0: Front-Left (CCW) -->
+    <plugin filename="gz-sim-multirotor-motor-model-system" name="gz::sim::systems::MultirotorMotorModel">
       <joint_name>rotor_0_joint</joint_name>
       <link_name>rotor_0</link_name>
       <motor_number>0</motor_number>
-      <power_rating>100</power_rating>
-      <zero_load_rpm>5000</zero_load_rpm>
-      <propeller>
-        <max_rotational_velocity>837.62</max_rotational_velocity>
-        <moment_constant>0.016</moment_constant>
-        <motor_constant>8.54858e-06</motor_constant>
-        <motor_resistance>0.27</motor_resistance>
-        <motor_speed_constant>299.26</motor_speed_constant>
-        <turning_direction>ccw</turning_direction>
-      </propeller>
+      <turning_direction>ccw</turning_direction>
+      <max_rotational_velocity>850.0</max_rotational_velocity>
+      <motor_constant>8.54858e-06</motor_constant>
+      <moment_constant>0.016</moment_constant>
+      <rotor_drag_coefficient>8.06428e-05</rotor_drag_coefficient>
+      <rolling_moment_coefficient>1e-06</rolling_moment_coefficient>
+      <rotor_velocity_slowdown_sim>10</rotor_velocity_slowdown_sim>
     </plugin>
 
-    <!-- Motor 1 (Front-Right) -->
-    <plugin
-      filename="gz-sim-multirotor-motor-model-system"
-      name="motor_1">
+    <!-- Motor 1: Front-Right (CW) -->
+    <plugin filename="gz-sim-multirotor-motor-model-system" name="gz::sim::systems::MultirotorMotorModel">
       <joint_name>rotor_1_joint</joint_name>
       <link_name>rotor_1</link_name>
       <motor_number>1</motor_number>
-      <power_rating>100</power_rating>
-      <zero_load_rpm>5000</zero_load_rpm>
-      <propeller>
-        <max_rotational_velocity>837.62</max_rotational_velocity>
-        <moment_constant>0.016</moment_constant>
-        <motor_constant>8.54858e-06</motor_constant>
-        <motor_resistance>0.27</motor_resistance>
-        <motor_speed_constant>299.26</motor_speed_constant>
-        <turning_direction>cw</turning_direction>
-      </propeller>
+      <turning_direction>cw</turning_direction>
+      <max_rotational_velocity>850.0</max_rotational_velocity>
+      <motor_constant>8.54858e-06</motor_constant>
+      <moment_constant>0.016</moment_constant>
+      <rotor_drag_coefficient>8.06428e-05</rotor_drag_coefficient>
+      <rolling_moment_coefficient>1e-06</rolling_moment_coefficient>
+      <rotor_velocity_slowdown_sim>10</rotor_velocity_slowdown_sim>
     </plugin>
 
-    <!-- Motor 2 (Back-Left) -->
-    <plugin
-      filename="gz-sim-multirotor-motor-model-system"
-      name="motor_2">
+    <!-- Motor 2: Back-Left (CW) -->
+    <plugin filename="gz-sim-multirotor-motor-model-system" name="gz::sim::systems::MultirotorMotorModel">
       <joint_name>rotor_2_joint</joint_name>
       <link_name>rotor_2</link_name>
       <motor_number>2</motor_number>
-      <power_rating>100</power_rating>
-      <zero_load_rpm>5000</zero_load_rpm>
-      <propeller>
-        <max_rotational_velocity>837.62</max_rotational_velocity>
-        <moment_constant>0.016</moment_constant>
-        <motor_constant>8.54858e-06</motor_constant>
-        <motor_resistance>0.27</motor_resistance>
-        <motor_speed_constant>299.26</motor_speed_constant>
-        <turning_direction>cw</turning_direction>
-      </propeller>
+      <turning_direction>cw</turning_direction>
+      <max_rotational_velocity>850.0</max_rotational_velocity>
+      <motor_constant>8.54858e-06</motor_constant>
+      <moment_constant>0.016</moment_constant>
+      <rotor_drag_coefficient>8.06428e-05</rotor_drag_coefficient>
+      <rolling_moment_coefficient>1e-06</rolling_moment_coefficient>
+      <rotor_velocity_slowdown_sim>10</rotor_velocity_slowdown_sim>
     </plugin>
 
-    <!-- Motor 3 (Back-Right) -->
-    <plugin
-      filename="gz-sim-multirotor-motor-model-system"
-      name="motor_3">
+    <!-- Motor 3: Back-Right (CCW) -->
+    <plugin filename="gz-sim-multirotor-motor-model-system" name="gz::sim::systems::MultirotorMotorModel">
       <joint_name>rotor_3_joint</joint_name>
       <link_name>rotor_3</link_name>
       <motor_number>3</motor_number>
-      <power_rating>100</power_rating>
-      <zero_load_rpm>5000</zero_load_rpm>
-      <propeller>
-        <max_rotational_velocity>837.62</max_rotational_velocity>
-        <moment_constant>0.016</moment_constant>
-        <motor_constant>8.54858e-06</motor_constant>
-        <motor_resistance>0.27</motor_resistance>
-        <motor_speed_constant>299.26</motor_speed_constant>
-        <turning_direction>ccw</turning_direction>
-      </propeller>
+      <turning_direction>ccw</turning_direction>
+      <max_rotational_velocity>850.0</max_rotational_velocity>
+      <motor_constant>8.54858e-06</motor_constant>
+      <moment_constant>0.016</moment_constant>
+      <rotor_drag_coefficient>8.06428e-05</rotor_drag_coefficient>
+      <rolling_moment_coefficient>1e-06</rolling_moment_coefficient>
+      <rotor_velocity_slowdown_sim>10</rotor_velocity_slowdown_sim>
     </plugin>
 
   </model>
