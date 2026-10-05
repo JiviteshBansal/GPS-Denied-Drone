@@ -1,0 +1,419 @@
+<?xml version="1.0" ?>
+<sdf version="1.9">
+  <model name="quadrotor_px4">
+    <!-- Model pose: will be set by the launch file or ROS spawn -->
+    <pose>0 0 0.1 0 0 0</pose>
+
+    <!-- Enable IMU for Gazebo-based state estimation -->
+    <static>false</static>
+
+    <!-- Main body (fuselage) -->
+    <link name="base_link">
+      <inertial>
+        <!-- Total mass: 1.2 kg (typical for small quadrotor) -->
+        <mass>1.2</mass>
+        <!-- Inertia tensor (simplified, assuming symmetric body) -->
+        <inertia>
+          <ixx>0.01</ixx>
+          <iyy>0.01</iyy>
+          <izz>0.02</izz>
+          <ixy>0.0</ixy>
+          <ixz>0.0</ixz>
+          <iyz>0.0</iyz>
+        </inertia>
+      </inertial>
+
+      <!-- Main body visual (central fuselage) -->
+      <visual name="body">
+        <geometry>
+          <box>
+            <size>0.2 0.2 0.1</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>0.1 0.1 0.1 1</ambient>
+          <diffuse>0.3 0.3 0.3 1</diffuse>
+          <specular>0.5 0.5 0.5 1</specular>
+        </material>
+      </visual>
+
+      <!-- Main body collision -->
+      <collision name="body">
+        <geometry>
+          <box>
+            <size>0.2 0.2 0.1</size>
+          </box>
+        </geometry>
+      </collision>
+
+      <!-- IMU sensor (required for PX4 state estimation) -->
+      <sensor name="imu" type="imu">
+        <pose>0 0 0 0 0 0</pose>
+        <imu>
+          <angular_velocity>
+            <x>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.0099</stddev>
+              </noise>
+            </x>
+            <y>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.0099</stddev>
+              </noise>
+            </y>
+            <z>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.0099</stddev>
+              </noise>
+            </z>
+          </angular_velocity>
+          <linear_acceleration>
+            <x>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.0174</stddev>
+              </noise>
+            </x>
+            <y>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.0174</stddev>
+              </noise>
+            </y>
+            <z>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.0174</stddev>
+              </noise>
+            </z>
+          </linear_acceleration>
+        </imu>
+        <always_on>true</always_on>
+        <update_rate>250</update_rate>
+      </sensor>
+
+        <!-- Camera sensor (RGB image for VSLAM/exploration) -->
+        <sensor name="camera" type="camera">
+          <pose relative_to="base_link">0.05 0 -0.05 0 0.3927 0</pose>
+          <camera>
+            <horizontal_fov>1.0472</horizontal_fov>
+            <vertical_fov>0.7854</vertical_fov>
+            <image>
+              <width>640</width>
+              <height>480</height>
+              <format>RGB_INT8</format>
+            </image>
+            <clip>
+              <near>0.01</near>
+              <far>300</far>
+            </clip>
+            <noise>
+              <type>gaussian</type>
+              <mean>0.0</mean>
+              <stddev>0.01</stddev>
+            </noise>
+          </camera>
+          <always_on>true</always_on>
+          <update_rate>30</update_rate>
+        </sensor>
+
+        <!-- Depth Camera sensor (for mapping and obstacle avoidance) -->
+        <sensor name="depth_camera" type="depth_camera">
+          <pose relative_to="base_link">0.05 0 -0.05 0 0.3927 0</pose>
+          <camera>
+            <horizontal_fov>1.0472</horizontal_fov>
+            <vertical_fov>0.7854</vertical_fov>
+            <image>
+              <width>640</width>
+              <height>480</height>
+              <format>R_FLOAT32</format>
+            </image>
+            <clip>
+              <near>0.01</near>
+              <far>20</far>
+            </clip>
+          </camera>
+          <always_on>true</always_on>
+          <update_rate>30</update_rate>
+        </sensor>
+    </link>
+
+    <!-- Front-Left Motor (Motor 0) -->
+    <link name="rotor_0">
+      <pose relative_to="base_link">0.1 0.1 0 0 0 0</pose>
+      <inertial>
+        <mass>0.005</mass>
+        <inertia>
+          <ixx>0.00001</ixx>
+          <iyy>0.00001</iyy>
+          <izz>0.00001</izz>
+        </inertia>
+      </inertial>
+      <visual name="rotor_visual">
+        <geometry>
+          <cylinder>
+            <radius>0.05</radius>
+            <length>0.01</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>0.2 0.2 0.2 1</ambient>
+          <diffuse>0.4 0.4 0.4 1</diffuse>
+        </material>
+      </visual>
+      <collision name="rotor_collision">
+        <geometry>
+          <cylinder>
+            <radius>0.05</radius>
+            <length>0.01</length>
+          </cylinder>
+        </geometry>
+      </collision>
+    </link>
+
+    <!-- Front-Right Motor (Motor 1) -->
+    <link name="rotor_1">
+      <pose relative_to="base_link">0.1 -0.1 0 0 0 0</pose>
+      <inertial>
+        <mass>0.005</mass>
+        <inertia>
+          <ixx>0.00001</ixx>
+          <iyy>0.00001</iyy>
+          <izz>0.00001</izz>
+        </inertia>
+      </inertial>
+      <visual name="rotor_visual">
+        <geometry>
+          <cylinder>
+            <radius>0.05</radius>
+            <length>0.01</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>0.2 0.2 0.2 1</ambient>
+          <diffuse>0.4 0.4 0.4 1</diffuse>
+        </material>
+      </visual>
+      <collision name="rotor_collision">
+        <geometry>
+          <cylinder>
+            <radius>0.05</radius>
+            <length>0.01</length>
+          </cylinder>
+        </geometry>
+      </collision>
+    </link>
+
+    <!-- Back-Left Motor (Motor 2) -->
+    <link name="rotor_2">
+      <pose relative_to="base_link">-0.1 0.1 0 0 0 0</pose>
+      <inertial>
+        <mass>0.005</mass>
+        <inertia>
+          <ixx>0.00001</ixx>
+          <iyy>0.00001</iyy>
+          <izz>0.00001</izz>
+        </inertia>
+      </inertial>
+      <visual name="rotor_visual">
+        <geometry>
+          <cylinder>
+            <radius>0.05</radius>
+            <length>0.01</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>0.2 0.2 0.2 1</ambient>
+          <diffuse>0.4 0.4 0.4 1</diffuse>
+        </material>
+      </visual>
+      <collision name="rotor_collision">
+        <geometry>
+          <cylinder>
+            <radius>0.05</radius>
+            <length>0.01</length>
+          </cylinder>
+        </geometry>
+      </collision>
+    </link>
+
+    <!-- Back-Right Motor (Motor 3) -->
+    <link name="rotor_3">
+      <pose relative_to="base_link">-0.1 -0.1 0 0 0 0</pose>
+      <inertial>
+        <mass>0.005</mass>
+        <inertia>
+          <ixx>0.00001</ixx>
+          <iyy>0.00001</iyy>
+          <izz>0.00001</izz>
+        </inertia>
+      </inertial>
+      <visual name="rotor_visual">
+        <geometry>
+          <cylinder>
+            <radius>0.05</radius>
+            <length>0.01</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>0.2 0.2 0.2 1</ambient>
+          <diffuse>0.4 0.4 0.4 1</diffuse>
+        </material>
+      </visual>
+      <collision name="rotor_collision">
+        <geometry>
+          <cylinder>
+            <radius>0.05</radius>
+            <length>0.01</length>
+          </cylinder>
+        </geometry>
+      </collision>
+    </link>
+
+    <!-- Joints connecting rotors to main body -->
+    <!-- Front-Left (Motor 0) -->
+    <joint name="rotor_0_joint" type="revolute">
+      <pose relative_to="rotor_0">0 0 0 0 0 0</pose>
+      <parent>base_link</parent>
+      <child>rotor_0</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>0</lower>
+          <upper>0</upper>
+          <effort>1000</effort>
+          <velocity>300</velocity>
+        </limit>
+      </axis>
+    </joint>
+
+    <!-- Front-Right (Motor 1) -->
+    <joint name="rotor_1_joint" type="revolute">
+      <pose relative_to="rotor_1">0 0 0 0 0 0</pose>
+      <parent>base_link</parent>
+      <child>rotor_1</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>0</lower>
+          <upper>0</upper>
+          <effort>1000</effort>
+          <velocity>300</velocity>
+        </limit>
+      </axis>
+    </joint>
+
+    <!-- Back-Left (Motor 2) -->
+    <joint name="rotor_2_joint" type="revolute">
+      <pose relative_to="rotor_2">0 0 0 0 0 0</pose>
+      <parent>base_link</parent>
+      <child>rotor_2</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>0</lower>
+          <upper>0</upper>
+          <effort>1000</effort>
+          <velocity>300</velocity>
+        </limit>
+      </axis>
+    </joint>
+
+    <!-- Back-Right (Motor 3) -->
+    <joint name="rotor_3_joint" type="revolute">
+      <pose relative_to="rotor_3">0 0 0 0 0 0</pose>
+      <parent>base_link</parent>
+      <child>rotor_3</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>0</lower>
+          <upper>0</upper>
+          <effort>1000</effort>
+          <velocity>300</velocity>
+        </limit>
+      </axis>
+    </joint>
+
+    <!-- Thruster plugins for PX4 SITL -->
+    <!-- Motor 0 (Front-Left) -->
+    <plugin
+      filename="gz-sim-multirotor-motor-model-system"
+      name="motor_0">
+      <joint_name>rotor_0_joint</joint_name>
+      <link_name>rotor_0</link_name>
+      <motor_number>0</motor_number>
+      <power_rating>100</power_rating>
+      <zero_load_rpm>5000</zero_load_rpm>
+      <propeller>
+        <max_rotational_velocity>837.62</max_rotational_velocity>
+        <moment_constant>0.016</moment_constant>
+        <motor_constant>8.54858e-06</motor_constant>
+        <motor_resistance>0.27</motor_resistance>
+        <motor_speed_constant>299.26</motor_speed_constant>
+        <turning_direction>ccw</turning_direction>
+      </propeller>
+    </plugin>
+
+    <!-- Motor 1 (Front-Right) -->
+    <plugin
+      filename="gz-sim-multirotor-motor-model-system"
+      name="motor_1">
+      <joint_name>rotor_1_joint</joint_name>
+      <link_name>rotor_1</link_name>
+      <motor_number>1</motor_number>
+      <power_rating>100</power_rating>
+      <zero_load_rpm>5000</zero_load_rpm>
+      <propeller>
+        <max_rotational_velocity>837.62</max_rotational_velocity>
+        <moment_constant>0.016</moment_constant>
+        <motor_constant>8.54858e-06</motor_constant>
+        <motor_resistance>0.27</motor_resistance>
+        <motor_speed_constant>299.26</motor_speed_constant>
+        <turning_direction>cw</turning_direction>
+      </propeller>
+    </plugin>
+
+    <!-- Motor 2 (Back-Left) -->
+    <plugin
+      filename="gz-sim-multirotor-motor-model-system"
+      name="motor_2">
+      <joint_name>rotor_2_joint</joint_name>
+      <link_name>rotor_2</link_name>
+      <motor_number>2</motor_number>
+      <power_rating>100</power_rating>
+      <zero_load_rpm>5000</zero_load_rpm>
+      <propeller>
+        <max_rotational_velocity>837.62</max_rotational_velocity>
+        <moment_constant>0.016</moment_constant>
+        <motor_constant>8.54858e-06</motor_constant>
+        <motor_resistance>0.27</motor_resistance>
+        <motor_speed_constant>299.26</motor_speed_constant>
+        <turning_direction>cw</turning_direction>
+      </propeller>
+    </plugin>
+
+    <!-- Motor 3 (Back-Right) -->
+    <plugin
+      filename="gz-sim-multirotor-motor-model-system"
+      name="motor_3">
+      <joint_name>rotor_3_joint</joint_name>
+      <link_name>rotor_3</link_name>
+      <motor_number>3</motor_number>
+      <power_rating>100</power_rating>
+      <zero_load_rpm>5000</zero_load_rpm>
+      <propeller>
+        <max_rotational_velocity>837.62</max_rotational_velocity>
+        <moment_constant>0.016</moment_constant>
+        <motor_constant>8.54858e-06</motor_constant>
+        <motor_resistance>0.27</motor_resistance>
+        <motor_speed_constant>299.26</motor_speed_constant>
+        <turning_direction>ccw</turning_direction>
+      </propeller>
+    </plugin>
+
+  </model>
+</sdf>
